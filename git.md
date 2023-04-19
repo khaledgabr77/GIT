@@ -155,6 +155,8 @@ One way you might imagine implementing snapshotting as described above is to hav
 - Staging area
 - Repositories
 
+![](https://marklodato.github.io/visual-git-guide/conventions.svg)
+
 # Staging area
 
 it’s a part of the interface to create commits.
@@ -263,6 +265,8 @@ khaled:~/GIT$ git commit -m "inital commit"
  1 file changed, 1 insertion(+)
  create mode 100644 test.txt
 ```
+
+![](https://marklodato.github.io/visual-git-guide/commit-main.svg)
 
 ```bash
 khaled:~/GIT(master)$ find .git//objects/ -type f
@@ -405,6 +409,10 @@ khaled:~/GIT(master)$ git status -s
 
 The red `M` means the file not found in the `stage area` or the `repo`.
 
+![](https://marklodato.github.io/visual-git-guide/conventions.svg)
+
+## Diff
+
 now let's introduce the `git diff` command this command make compear between the `WD`, `SA` and `repo`.
 
 ---
@@ -442,6 +450,145 @@ index f6bd9dd..80e6e52 100644
  Welcome to Git
  New Line Added to the file
 +Again, add new line!
+```
+
+![](https://marklodato.github.io/visual-git-guide/diff.svg)
+
+## Undoing
+
+let's add a new line for our `test.txt` file, for undoing the line you added:
+
+```bash
+khaled:~/GIT(master)$ git restore test.txt
+```
+
+let's add a new line again for our `test.txt` file, also use `git add` to start tracking the file.
+
+```bash
+khaled:~/GIT(master)$ git status 
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+    modified:   test.txt
+```
+
+the file added to the stage area, What if you want to make the file untracked!!
+the command below will do that.
+
+```bash
+khaled:~/GIT(master)$ git restore --staged test.txt
+```
+
+check the file status now you will find the file become untracking agian!
+
+```bash
+khaled:~/GIT(master)$ git status 
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   test.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+but wait if you opend the file you will find the line you added still there make sence!, but still have command for discard the line by using
+
+```bash
+khaled:~/GIT(master)$ git restore test.txt
+```
+
+easy right!, let's check how you could discard from repo
+
+change the recent commit, you could change the last commit by using this command, the text editor will open and you can add the new commit msg.
+
+```bash
+khaled:~/GIT(master)$  git commit --amend 
+```
+
+![](https://marklodato.github.io/visual-git-guide/commit-amend.svg)
+
+
+## Reset
+
+now the `WT`, `SA` and `repo` are the same cool!, and the `HEAD` pointing to the last commit. suddelny you decide to move backward to the last commit.
+hmm, so you need to using `git reset` and reset the `HEAD`.
+move backward one step:
+
+```bash
+khaled:~/GIT(master)$ git reset HEAD~1
+Unstaged changes after reset:
+M   test.txt
+```
+
+keep in mind the changes happend in `SA`. and this safe and clear. but what if you want this changes to the `WT`!
+
+```bash
+khaled:~/GIT(master)$ git reset --hard HEAD~1
+HEAD is now at 08ee610 inital commit
+```
+
+please check the `test.txt` file now!!
+
+all commites you added will be saved, but if you tried to show the traffic loged `git log` nothing will show, hmm but don't worry you can use `git reflog`
+
+```bash
+khaled:~/GIT(master)$ git reflog 
+08ee610 (HEAD -> master) HEAD@{0}: reset: moving to HEAD~1
+d772dcc HEAD@{1}: reset: moving to HEAD~1
+a6bcd64 HEAD@{2}: commit (amend): new line added here!
+22d79fe HEAD@{3}: commit: new line added
+d772dcc HEAD@{4}: commit: undoing test
+08ee610 (HEAD -> master) HEAD@{5}: commit (initial): inital commit
+```
+
+![center](https://marklodato.github.io/visual-git-guide/reset-commit.svg)
+
+if you remmber before using the reset command the `master/HEAD` commit was `a6bcd64 HEAD@{2}: commit (amend): new line added here!`.
+now let's try to `FastForward` move forward to the previous `HEAD`
+
+```bash
+khaled:~/GIT(master)$ git reset --hard HEAD@{2}
+HEAD is now at a6bcd64 new line added here!
+```
+
+Amazing, check git log now you will find the `HEAD` backed again to `new line added here`
+
+## Tags
+
+not every commit or change you do in Git is a version!, but it could be some of commits or changes are a version!
+you could Bookmark a commit as new version `Tag`.
+
+let's create a new version, let's `add` and `commit` a new line to the `test.txt` file.
+
+```bash
+khaled:~/GIT(master)$ git tag -a v1.0 -m "Version 1.0"
+```
+
+```bash
+khaled:~/GIT(master)$ git show v1.0 
+tag v1.0
+Tagger: Khaled Gabr <khaledgabr77@gmail.com>
+Date:   Wed Apr 19 05:11:53 2023 +0200
+
+Version 1.0
+
+commit 6706ba028dc3832276e42f0b8a4bb06bd5ef6fe3 (HEAD -> master, tag: v1.0)
+Author: Khaled Gabr <khaledgabr77@gmail.com>
+Date:   Wed Apr 19 05:10:11 2023 +0200
+
+    new verion is coming!
+
+diff --git a/test.txt b/test.txt
+index b5402f4..ee0dc0a 100644
+--- a/test.txt
++++ b/test.txt
+@@ -3,3 +3,5 @@ Welcome to Git
+ undoing test 
+ 
+ new line added 
++
++loading a new version!
 ```
 
 ---
