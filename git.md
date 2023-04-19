@@ -1,5 +1,5 @@
 ---
-marp: true
+marp: false
 author: Khaled Gabr
 theme: custom-theme
 
@@ -565,6 +565,9 @@ let's create a new version, let's `add` and `commit` a new line to the `test.txt
 khaled:~/GIT(master)$ git tag -a v1.0 -m "Version 1.0"
 ```
 
+![](https://git-scm.com/book/en/v2/images/branch-and-history.png)
+
+
 ```bash
 khaled:~/GIT(master)$ git show v1.0 
 tag v1.0
@@ -590,6 +593,277 @@ index b5402f4..ee0dc0a 100644
 +
 +loading a new version!
 ```
+
+## Branching
+
+![](https://git-scm.com/book/en/v2/images/commit-and-tree.png)
+
+Creating new branch
+
+```bash
+khaled:~/GIT(master)$ git branch testing 
+```
+
+![](https://git-scm.com/book/en/v2/images/head-to-master.png)
+
+Check branches in Git
+
+```bash
+khaled:~/GIT(master)$ git branch 
+  testing
+* master
+```
+
+the `*` means this is the current branch(`HEAD`). so any changes `add` or `commits` will be added to the master branch.
+
+hmm, you have now 2 branches `HEAD` or `master` and `testing` branch. also, you can check which branche you are using for `log` command:
+
+```bash
+khaled:~/GIT(master)$ git log --oneline
+415af3d (HEAD -> master, testing) fourht line added
+5bb5005 Third line added
+d5e16df sec line added
+97b3b92 initial commit
+```
+
+Let's switch to the `testing` branch
+
+```bash
+khaled:~/GIT(master)$ git switch testing 
+Switched to branch 'testing'
+```
+
+![](https://git-scm.com/book/en/v2/images/head-to-testing.png)
+
+```bash
+khaled:~/GIT(testing)$ git log --oneline 
+415af3d (HEAD -> testing, master) fourht line added
+5bb5005 Third line added
+d5e16df sec line added
+97b3b92 initial commit
+```
+
+you can see now the `HEAD` is pointing to the `testing` branch
+
+let's add and commit a new line to `test.txt` file. also, check the `git log` output.
+
+![](https://git-scm.com/book/en/v2/images/advance-testing.png)
+
+```bash
+khaled:~/GIT(testing)$ git log --oneline
+0b0feb2 (HEAD -> testing) new line added
+415af3d (master) fourht line added
+5bb5005 Third line added
+d5e16df sec line added
+97b3b92 initial commit
+```
+
+Let’s switch back to the master branch:
+
+```bash
+khaled:~/GIT(testing)$ git switch master 
+Switched to branch 'master'
+```
+
+![](https://git-scm.com/book/en/v2/images/checkout-master.png)
+
+## Merging
+
+simple way to merge `testing` branch into `master`, you need to switch to the `master` branch first then use  git `merge` command:
+
+```bash
+khaled:~/GIT(master)$ git merge testing 
+Updating 415af3d..0b0feb2
+Fast-forward
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+if you need to check which branches merged into the master you can use this command:
+
+```bash
+khaled:~/GIT(master)$ git branch --merged 
+  testing
+* master
+```
+
+from previous command we noticed that `testing` branch merged to `master` branch..so the data file are the same!
+let's delete `testing` branch:
+
+```bash
+khaled:~/GIT(master)$ git branch -d testing 
+Deleted branch testing (was 0b0feb2).
+```
+
+let's check if the `testing` branch deleted:
+
+```bash
+khaled:~/GIT(master)$ git log --oneline 
+0b0feb2 (HEAD -> master) new line added
+415af3d fourht line added
+5bb5005 Third line added
+d5e16df sec line added
+97b3b92 initial commit
+```
+
+##  Divergent history
+
+You created and switched to a branch, did some work on it, and then switched back to your main branch and did other work. Both of those changes are isolated in separate branches: you can switch back and forth between the branches and merge them together when you’re ready. And you did all that with simple branch, checkout, and commit commands.
+
+![](https://git-scm.com/book/en/v2/images/advance-master.png)
+
+```bash
+khaled:~/GIT(master)$ git branch testing 
+```
+
+```bash
+khaled:~/GIT(master)$ git switch testing 
+Switched to branch 'testing'
+```
+
+```bash
+khaled:~/GIT(testing)$ nano test.txt 
+khaled:~/GIT(testing)$ git add .
+khaled:~/GIT(testing)$ git commit -m "added new line for merge"
+[testing 5b0f71f] added new line for merge
+ 1 file changed, 1 insertion(+)
+```
+
+```bash
+khaled:~/GIT(testing)$ git log --oneline 
+5b0f71f (HEAD -> testing) added new line for merge
+0b0feb2 (master) new line added
+415af3d fourht line added
+5bb5005 Third line added
+d5e16df sec line added
+97b3b92 initial commit
+```
+
+let's `switch` to `master` branch and create new file `test2.txt`, `add` and `commit` to the `master` branch.
+
+```bash
+khaled:~/GIT(master)$ graph 
+* 1a343f2 (HEAD -> master) new test file added
+| * 5b0f71f (testing) added new line for merge
+|/  
+* 0b0feb2 new line added
+* 415af3d fourht line added
+* 5bb5005 Third line added
+* d5e16df sec line added
+* 97b3b92 initial commit
+```
+
+![](https://git-scm.com/book/en/v2/images/advance-master.png)
+
+```bash
+khaled:~/GIT(master)$ git merge testing 
+Merge made by the 'recursive' strategy.
+ test.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+![](https://git-scm.com/book/en/v2/images/basic-merging-2.png)
+
+```bash
+khaled:~/GIT(master)$ git log --oneline --decorate --graph --all 
+*   24f880f (HEAD -> master) Merge branch 'testing'
+|\  
+| * 5b0f71f (testing) added new line for merge
+* | 1a343f2 new test file added
+|/  
+* 0b0feb2 new line added
+* 415af3d fourht line added
+* 5bb5005 Third line added
+* d5e16df sec line added
+* 97b3b92 initial commit
+```
+
+## Merge Conflicts
+
+let's say your `master` branch has file `test.txt`, and you create a new branch called `testing`. let's switch to the `testing` branch `ls` you will find the `test.txt` file there..let's create a new file called `text2.txt` add some lines then `add` and `commit`..change to `master` branch create a new file with same name `test2.txt` add some lines then `add` and `commit`.
+
+```bash
+khaled:~/GIT(master)$ graph
+* 17739c2 (HEAD -> master) sec line added
+*   24f880f Merge branch 'testing'
+|\  
+* | 1a343f2 new test file added
+| | * ffd55b4 (testing) new file added
+| |/  
+| * 5b0f71f added new line for merge
+|/  
+* 0b0feb2 new line added
+* 415af3d fourht line added
+* 5bb5005 Third line added
+* d5e16df sec line added
+* 97b3b92 initial commit
+```
+
+you did amazing work..Let's `Merge` the `testing` branch into the `master` branch.
+
+```bash
+khaled:~/GIT(master)$ git merge testing 
+CONFLICT (add/add): Merge conflict in test2.txt
+Auto-merging test2.txt
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+hmm, it's seems normal `merge` not working fine..let's fix the merge.
+
+you can use `mergetool` command for fixing the issue, but we will another way to let the deverpoer the decision:
+
+open the `test2.txt` file you will found the file some new lines the first is `HEAD` line and second is the `merged` line(`testing`)..normlly you need to read and remove these lines..let's `add` theses changes and complete ypur merge.
+
+```bash
+khaled:~/GIT(master)$ git merge --continue 
+[master fb06b2c] Merge branch 'testing
+```
+
+```bash
+khaled:~/GIT(master)$ graph
+*   fb06b2c (HEAD -> master) Merge branch 'testing
+|\  
+| * ffd55b4 (testing) new file added
+* | 17739c2 sec line added
+* | 24f880f Merge branch 'testing'
+|\| 
+| * 5b0f71f added new line for merge
+* | 1a343f2 new test file added
+|/  
+* 0b0feb2 new line added
+* 415af3d fourht line added
+* 5bb5005 Third line added
+* d5e16df sec line added
+* 97b3b92 initial commit
+```
+
+## Rebase
+
+A rebase is an alternative to a merge for combining multiple branches. Whereas a merge creates a single commit with two parents, leaving a non-linear history, a rebase replays the commits from the current branch onto another, leaving a linear history.
+
+### Branch
+![](https://git-scm.com/book/en/v2/images/basic-rebase-1.png)
+
+### Merging divergent history
+![](https://git-scm.com/book/en/v2/images/basic-rebase-2.png)
+
+### Rebase
+
+```bash
+khaled:~/GIT(testing)$ git rebase master 
+First, rewinding head to replay your work on top of it...
+Fast-forwarded testing to master.
+```
+
+![](https://git-scm.com/book/en/v2/images/basic-rebase-3.png)
+
+### fast-forward merge
+
+```bash
+khaled:~/GIT(master)$ git merge testing 
+```
+
+![](https://git-scm.com/book/en/v2/images/basic-rebase-4.png)
 
 ---
 
