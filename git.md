@@ -865,6 +865,216 @@ khaled:~/GIT(master)$ git merge testing
 
 ![](https://git-scm.com/book/en/v2/images/basic-rebase-4.png)
 
+## Working with Remotes
+
+To be able to collaborate on any Git project, you need to know how to manage your remote repositories. Remote repositories are versions of your project that are hosted on the Internet or network somewhere.
+
+### Showing Your Remotes
+
+```bash
+$ git clone https://github.com/schacon/ticgit
+Cloning into 'ticgit'...
+remote: Reusing existing pack: 1857, done.
+remote: Total 1857 (delta 0), reused 0 (delta 0)
+Receiving objects: 100% (1857/1857), 374.35 KiB | 268.00 KiB/s, done.
+Resolving deltas: 100% (772/772), done.
+Checking connectivity... done.
+```
+
+```bash
+$ git remote
+origin
+```
+
+```bash
+$ git remote -v
+origin	https://github.com/schacon/ticgit (fetch)
+origin	https://github.com/schacon/ticgit (push)
+```
+
+### Add a remote to an existing repo
+
+To add a new remote Git repository as a shortname you can reference easily, run
+
+```bash
+$ git remote add <name> <url>
+```
+
+### Fetching from Remote
+
+The command goes out to that remote project and pulls down all the data from that remote project that you don’t have yet. After you do this, you should have references to all the branches from that remote, which you can merge in or inspect at any time.
+
+```bash
+$ git fetch [remote-name]
+```
+
+### Pushing to Your Remotes
+
+When you have your project at a point that you want to share, you have to push it upstream. The command for this is simple: `git push <remote> <branch>`.
+
+```bash
+$ git push origin master
+```
+
+### Real example for Git remote
+
+create new dir called `remote`
+
+```bash
+khaled:~/GIT(master)$ mkdir remote && cd remote
+khaled:~/GIT/remote(master)$ echo "First Line in remote" >> file1.txt
+```
+
+```bash
+khaled:~/GIT/remote(master)$ git init  
+Initialized empty Git repository in /home/khaled/GIT/remote/
+```
+
+create new dir called `demo` and `clone` the remote repo.
+
+```bash
+khaled:~/GIT/remote$ cd ..
+khaled:~/GIT(master)$ git clone ./remote/ demo
+```
+
+check local repo remote
+
+```bash
+khaled:~/GIT/demo(master)$ git remote 
+origin
+khaled:~/GIT/demo(master)$ git remote -v
+origin	/home/khaled/GIT/./remote/ (fetch)
+origin	/home/khaled/GIT/./remote/ (push)
+```
+
+Let's move to `remote` dir, and add new line to the `file1.txt`.
+also, `add` and `commit` changes to your repo. 
+
+```bash
+khaled:~/GIT/remote(master)$ git commit -am "sec line added"
+[master 0289ab1] sec line added
+ 1 file changed, 1 insertion(+)
+```
+
+Let's check the status of local repo `demo`.
+
+```bash
+khaled:~/GIT/demo(master)$ git status 
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+```
+
+hmm, acuttly this not the `true` we added a new line and we `commit` and my local told me you are updated!!!
+
+Let's update our local repo by using `fetch`.
+
+```bash
+khaled:~/GIT/demo(master)$ git fetch origin 
+```
+
+```bash
+khaled:~/GIT/demo(master)$ git status 
+On branch master
+Your branch is behind 'origin/master' by 1 commit, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+
+nothing to commit, working tree clean
+khaled:~/GIT/demo(master)$ 
+
+```
+
+after that you need to merge 
+
+```bash
+khaled:~/GIT/demo(master)$ git merge
+Updating 5a0fc34..0289ab1
+Fast-forward
+ file1.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
+```bash
+khaled:~/GIT/demo(master)$ git status 
+On branch master
+Your branch is up to date with 'origin/master'.
+
+nothing to commit, working tree clean
+```
+
+Let's update `demo` repo with adding new branch `testing`.
+
+
+```bash
+khaled:~/GIT/demo(master)$ git branch testing 
+khaled:~/GIT/demo(master)$ git switch testing 
+Switched to branch 'testing'
+
+```
+
+let's update file `file1.txt` with adding new line.
+
+```bash
+khaled:~/GIT/demo(testing)$ git commit -am "new added from local"
+[testing 0b8c619] new added from local
+ 1 file changed, 1 insertion(+)
+```
+
+```bash
+khaled:~/GIT/demo(testing)$ git status 
+On branch testing
+nothing to commit, working tree clean
+```
+hmm, if you remmber last time we added a new line to local then add and commit after we checked the status we noetic that we moved forward one step but here not the case! Why?
+Because no branch in the remote called `testing`!. we need to push the changes to the `testing` branch
+
+```bash
+khaled:~/GIT/demo(testing)$ git push origin 
+fatal: The current branch testing has no upstream branch.
+To push the current branch and set the remote as upstream, use
+
+    git push --set-upstream origin testing
+```
+
+```bash
+khaled:~/GIT/demo(testing)$ git push --set-upstream origin testing
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 293 bytes | 293.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /home/khaled/GIT/./remote/
+ * [new branch]      testing -> testing
+Branch 'testing' set up to track remote branch 'testing' from 'origin'.
+```
+
+Let's back again to the master branch in 2 repos, and add new line to the `remote` branch and commit it.
+
+```bash
+khaled:~/GIT/remote(master)$  git commit -am "new line added to remote"
+[master 21d01a9] new line added to remote
+ 1 file changed, 1 insertion(+)
+```
+
+now let's move to the `master` branch in another repo and pull the changes..pull = fetch + merge.
+
+```bash
+khaled:~/GIT/demo(master)$ git pull origin 
+remote: Enumerating objects: 5, done.
+remote: Counting objects: 100% (5/5), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 0 (delta 0)
+Unpacking objects: 100% (3/3), 286 bytes | 286.00 KiB/s, done.
+From /home/khaled/GIT/./remote
+   0289ab1..21d01a9  master     -> origin/master
+Updating 0289ab1..21d01a9
+Fast-forward
+ file1.txt | 1 +
+ 1 file changed, 1 insertion(+)
+```
+
 ---
 
 # Git command-line interface
